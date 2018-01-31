@@ -1,4 +1,5 @@
 INSERT INTO vehicles
+( make, model, year, owner_id )
 VALUES
 ('Toyota', 'Camry', 1991, 1),
 ('Honda', 'Civic', 1995, 1),

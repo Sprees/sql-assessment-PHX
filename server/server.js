@@ -18,8 +18,9 @@ app.get('/api/test', (req, res) => {
 
 setTimeout(() => {
   const db = app.get('db')
+  // Reset DB for postman testing
   db.dropVehicles()
-  .then(response => console.log('Vehicles table dropped'))
+  .then(() => console.log('Vehicles table dropped'))
   .catch(err => console.error('Drop error', err))
   .then(() => {
     db.dropUsers()
@@ -28,56 +29,72 @@ setTimeout(() => {
   })
   setTimeout(() => {
     db.createUsersTable()
-    .then(response => console.log('Users table created', response))
+    .then(() => console.log('Users table created'))
     .catch(err => console.error('Users table init error', err))
     .then(() => {
-      db.createVehiclesTable()
-      .then(response => console.log('Vehicles table created', response))
-      .catch(err => console.error('Vehicles table init error', err))
+      db.addUsers()
+      .then(users => console.log(users))
+      .catch(err => console.error(err))
+      .then(() => {
+        db.createVehiclesTable()
+        .then(() => console.log('Vehicles table created'))
+        .catch(err => console.error('Vehicles table init error', err))
+        .then(() => {
+          db.addVehicles()
+          .then(vehicles => console.log(vehicles))
+          .catch(err => console.error(err))
+        })
+      })
     })
   },500)
 },1500)
 
 app.get('/api/users', (req, res) => {
+  // Display all users
   app.get('db').getAllUsers()
   .then(users => res.status(200).json(users))
   .catch(err => console.error(err))
 })
 app.get('/api/vehicles', (req, res) => {
+  // Display all vehicles
   app.get('db').getAllVehicles()
-  .then(vehicles => res.status.json(vehicles))
+  .then(vehicles => res.status(200).json(vehicles))
   .catch(err => console.error(err))
 })
 app.post('/api/users', (req, res) => {
   const { name, email } = req.body
+  // Create a user
   app.get('db').createUser([ name, email ])
   .then(newUser => {
-    console.log(newUser[0])
-    res.status(200).json(newUser[0])
+    console.log(newUser)
+    res.status(200).json(newUser)
   })
   .catch(err => console.error(err))
 })
 app.post('/api/vehicles', (req, res) => {
   const { make, model, year, owner_id } = req.body
+  // Create a vehicle
   app.get('db').createVehicle([ make, model, year, owner_id ])
   .then(newVehicle => {
-    console.log(newVehicle[0])
-    res.status(200).json(newVehicle[0])
+    console.log(newVehicle)
+    res.status(200).json(newVehicle)
   })
   .catch(err => console.error(err))
 })
 app.get('/api/user/:userId/vehiclecount', (req, res) => {
+  const { userId } = req.params
   // Count amount of vehicles owned by user ID
-  app.get('db').countVehiclesOwnedByUser()
+  app.get('db').countVehiclesOwnedByUser([ userId ])
   .then(count => {
     console.log(count)
-    res.status(200).json(count[0])
+    res.status(200).json(count)
   })
   .catch(err => console.error(err))
 })
 app.get('/api/user/:userId/vehicle', (req, res) => {
   // Find vehicles by user ID
-  app.get('db').displayVehiclesOwnedByUser()
+  const { userId } = req.params
+  app.get('db').displayVehiclesOwnedByUser([ userId ])
   .then(vehicles => {
     console.log(vehicles)
     res.status(200).json(vehicles)
@@ -86,19 +103,22 @@ app.get('/api/user/:userId/vehicle', (req, res) => {
 })
 app.get('/api/vehicle', (req, res) => {
   const { userEmail, userFirstStart } = req.query
+  console.log(req.query)
   userEmail ? (
     // find all vehicles registered to a specific Email
-    app.get('db').displayVehiclesbyEmail()
+    app.get('db').displayVehiclesbyEmail([ userEmail ])
     .then(vehicles => {
-      console.log(vehicles)
+      console.log('running email search', vehicles)
       res.status(200).json(vehicles)
     })
     .catch(err => console.error(err))
   ) : userFirstStart ? (
     // find all vehicles that match letters of any name STEP. 8
-    app.get('db').displayVehiclesByNameQry()
+    app.get('db').displayVehiclesByNameQry([ 
+      userFirstStart.toUpperCase().concat('%') 
+    ])
     .then(vehicles => {
-      console.log(vehicles)
+      console.log('running qry search', vehicles)
       res.status(200).json(vehicles)
     })
     .catch(err => console.error(err))
@@ -116,29 +136,32 @@ app.get('/api/newervehiclesbyyear', (req, res) => {
   .catch(err => console.error(err))
 })
 app.put('/api/vehicle/:vehicleId/user/:userId', (req, res) => {
+  const { vehicleId, userId } = req.params
   // Assign new user to a specified vehicle RETURNING *
-  app.get('db').sellVehicle()
+  app.get('db').sellVehicle([ vehicleId, userId ])
   .then(vehicle => {
     console.log(vehicle[0])
-    res.status(200).json(vehicle[0])
+    res.status(200).json(vehicle)
   })
   .catch(err => console.error(err))
 })
 app.delete('/api/user/:userId/vehicle/:vehicleId', (req, res) => {
+  const { userId, vehicleId } = req.params
   // Repossess a vehicle, leaving it's owner_id field as null RETURNING *
-  app.get('db').repossessVehicle()
+  app.get('db').repossessVehicle([ vehicleId, userId ])
   .then(vehicle => {
     console.log(vehicle[0])
-    res.status(200).json(vehicle[0])
+    res.status(200).json(vehicle)
   })
   .catch(err => console.error(err)) 
 })
 app.delete('/api/vehicle/:vehicleId', (req, res) => {
+  const { vehicleId } = req.params
   // Remove vehicle completely RETURNING *
-  app.get('db').removeVehicle()
+  app.get('db').removeVehicle([ vehicleId ])
   .then(vehicle => {
     console.log(vehicle[0])
-    res.status(200).json(vehicle[0])
+    res.status(200).json(vehicle)
   })
   .catch(err => console.error(err))
 })

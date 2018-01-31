@@ -125,7 +125,8 @@ RETURNING *;
 6. Create an endpoint at `GET '/api/user/:userId/vehicle'` that will find all **vehicles** that belong to the user with the provided users id.
 
 7. Create an endpoint at `GET '/api/vehicle'` that will find all **vehicles** that belong to the user with the provided user's email.
-      * The users email will be send on the request url as a **query**. Example: `?userEmail=[user email]`
+      * The users email will be send on the request url as a **query**. Example: `
+      ?userEmail=[user email]`
 
 8. Use the *above* endpoint to also handle the query `?userFirstStart=[letters]` to get all **vehicles** for any user whose first name starts with the provided letters.
 
